@@ -22,11 +22,8 @@ def get_tmatch(filename):
             tmatch[i].pop()
         # newf = s
         # fnew.write(newf)
-    # for line in tmatch:
-    #     print(line)
     s = [line for line in tmatch if len(line) > 1]
-    # for line in s:
-    #     print(line)
+
     wirte_script(s, 's')
     fhand.close()
     return s
@@ -97,74 +94,6 @@ def time_to_timestamp(time):
     timestamp = str(h).zfill(2) + ':' + str(m).zfill(2) + ':'\
                 + str(a).zfill(2) + ',' + str(b).zfill(3)
     return timestamp
-
-# def match_line(t_match, s_script, p = 0.8, state = 0, t_lastline = 'bucunzai', s_lastline = 'bucunzai'):
-#     """ t_match is a line str from tmatch
-#         s_script is a line str from script
-#         p is the match accuracy rate
-#         state means the last state result of match_line
-#         -1, 0, 1 means t_match ends early, end at the same time, s_script ends early
-#     """
-#     t = str_to_word(t_match)
-#     s = str_to_word(s_script)
-#     print(t, '\n', s)
-#
-#     t_last = str_to_word(t_lastline)
-#     s_last = str_to_word(s_lastline)
-#
-#     count = 0
-#     total = min(len(t), len(s))
-#     # for i in range(total):
-#     #     if t[i].lower() == s[i].lower():
-#     #         count += 1
-#     # rate = count / total
-#     # if rate < p:
-#     #     return None
-#     if total > 1:
-#         k = 2
-#     else:
-#         k = 1
-#
-#     # if (t[-1] in s and t[-k] in s) and s[-1] not in t:
-#     #     return -1
-#     # elif (t[-1] in s and t[-k] in s) and (s[-1] in t and s[-k] in t):
-#     #     return 0
-#     # elif t[-1] not in s and (s[-1] in t and s[-k] in t):
-#     #     return 1
-#     # else:
-#     #     return None
-#
-#     def logic_check(t, s, t_last, s_last):
-#         """ check whether t ends firstly
-#         """
-#         for i in range(len(s)):
-#             if t[-1] == s[i]:
-#                 if len(t) < 2:
-#                     if i < 1:
-#                         if t_last[-1] == s_last[-1]:
-#                             return True
-#                     else:
-#                         if t_last[-1] == s[i-1]:
-#                             return True
-#                 else:
-#                     if i < 1:
-#                         if t[-2] == s_last[-1]:
-#                             return True
-#                     else:
-#                         if t[-2] == s[i-1]:
-#                             return True
-#         return False
-#
-#     a = logic_check(t, s, t_last, s_last)
-#     b = logic_check(s, t, s_last, t_last)
-#     if a and not b:
-#         return -1
-#     elif a and b:
-#         return 0
-#     elif not a and b:
-#         return 1
-#     else:
-#         return None
 
 def match_l(t_script, s_script, i, j, state, k):
     """ t_match is from tmatch, and i is its current line position
@@ -334,31 +263,6 @@ def incrlist(arr):
                 max_value -= 1
     return result
 
-# def time_calc(ts_match, s_script, place = 0):
-#     """ Calculate the start or end time of s_script from ts_match
-#         place = 0 or 1 (0 means start and 1 means end)
-#     """
-#     t0, t1 = get_timestamp(ts_match[0])
-#     t0, t1 = timestamp_to_time(t0), timestamp_to_time(t1)
-#     delta =  t1 - t0
-#     punct = '~`!#$%^&*()_+-=|\';":/.,?><~·！@#￥%……&*（）——+-=“：’；、。，？》《{}'
-#     t = re.sub(r"[%s]+" %punct, "", ts_match[1]).split()
-#     s = re.sub(r"[%s]+" %punct, "", s_script).split()
-#     n = len(t)
-#     t_d = delta / n
-#     if place == 0:
-#         for i in range(n):
-#             if s[0] == t[i]:
-#                 k = i + 1
-#                 break
-#     else:
-#         for i in range(n):
-#             if s[-1] == t[-1-i]:
-#                 k = n - i
-#                 break
-#     time = t0 + k * t_d
-#     return time_to_timestamp(round(time))
-
 def time_calc(time, t_script, s_script, state, new_state, i, j, k, script):
     """ Calculate the start or end time of s_script from ts_match
         place = 0 or 1 (0 means start and 1 means end)
@@ -395,59 +299,6 @@ def time_calc(time, t_script, s_script, state, new_state, i, j, k, script):
 
     # return time_to_timestamp(round(time))
     return script[j][0]
-# def match_script(tmatch, script):
-#     """ Add timestamp to script
-#     """
-#     time = []
-#     t_script = []
-#     for line in tmatch:
-#         time.append(line[0])
-#         t_script.append(line[1])
-#         # print(line)
-#     i, j = 0, 0
-#     state = 0
-#     s = [['time', script[k]] for k in range(len(script))]
-#     while i < len(tmatch) and j < len(script):
-#         # if len(tmatch[i]) < 2:
-#         #     i += 1
-#         #     continue
-#         if i == 0 or j == 0:
-#             new_state = match_line(tmatch[i][1], script[j], 0.8, state)
-#         else:
-#             print(i, j)
-#             new_state = match_line(tmatch[i][1], script[j], 0.8, state, tmatch[i-1][1], script[j-1])
-#         t0, t1 = get_timestamp(tmatch[i][0])
-#
-#         if new_state == -1:
-#             if state == 0:
-#                 s[j][0] = t0 + ' --> '
-#             elif state == 1:
-#                 s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> '
-#             i += 1
-#         elif new_state == 0:
-#             if state == -1:
-#                 s[j][0] += t1
-#             elif state == 0:
-#                 s[j][0] = t0 + ' --> ' + t1
-#             elif state == 1:
-#                 s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> ' + t1
-#             i += 1
-#             j += 1
-#         elif new_state == 1:
-#             if state == -1:
-#                 s[j][0] += time_calc(tmatch[i], script[j], 1)
-#             elif state == 0:
-#                 s[j][0] = t0 + ' --> ' + time_calc(tmatch[i], script[j], 1)
-#             elif state == 1:
-#                 s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> '\
-#                           + time_calc(tmatch[i], script[j], 1)
-#             j += 1
-#         else:
-#             print('An error happened in line ', i+1, '\n', tmatch[i][1], '\n', script[j])
-#             print(state, new_state)
-#             sys.exit()
-#         state = new_state
-#     return s
 
 def match_s(tmatch, script):
     """ Add timestamp to script
