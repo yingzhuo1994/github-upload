@@ -105,74 +105,51 @@ def match_l(t_script, s_script, i, j, state, k):
     t = t_script
     s = s_script
 
-
     def logic_check(t, s, i, j, state, k, f_b = 0):
         """ check whether t ends firstly
             f_b means check front or back ends firstly, 0 is front, 1 is back
         """
         if f_b == 1:
             state = -state
-
         m = 0
         accuracy = 0.8
-
+        print(t[i], '\n', s[j])
         if state == 0:
             len_t = len(t[i])
             len_s = len(s[j])
-            # print(t[i], len_t, '\n', s[j], len_s)
             diff = len_t - len_s
-            n = 0
-            count = [0 for _ in range(abs(diff) + 1)]
-            if diff <= 0:
-                while n <= abs(diff):
-                    for z in range(len_t):
-                        if t[i][z] == s[j][z + n]:
-                            count[n] += 1
-                    n += 1
-                # print(count)
-                m = max(count)
-                k = count.index(m) + len_t - 1
+            result = compare_line(t[i], s[j])
+            # print(t[i], '\n', s[j])
+            # print('result', result)
+            if t[i][-1] == s[j][result[-1]]:
+                k = result[-1]
+                return True, k
         elif state == -1:
             len_t = len(t[i])
-            len_s = len(s[j][k+1:])
-            # print(t[i], len_t, '\n', s[j], len_s)
+            len_s = len(s[j][k + 1:])
             diff = len_t - len_s
-            n = 0
-            count = [0 for _ in range(abs(diff) + 1)]
-            if diff <= 0:
-                while n <= abs(diff):
-                    for z in range(len_t):
-                        if t[i][z] == s[j][k + 1 + z + n]:
-                            count[n] += 1
-                    n += 1
-                # print(count)
-                m = max(count)
-                k = k + count.index(m) + len_t
+            result = compare_line(t[i], s[j][k + 1:])
+            # print(result)
+            if t[i][-1] == s[j][k + result[-1] + 1]:
+                k = k + result[-1] + 1
+                return True, k
         elif state == 1:
             len_t = len(t[i][k+1:])
             len_s = len(s[j])
-            # print(t[i], len_t, '\n', s[j], len_s)
             diff = len_t - len_s
-            n = 0
-            count = [0 for _ in range(abs(diff) + 1)]
-            if diff <= 0:
-                while n <= abs(diff):
-                    for z in range(len_t):
-                        if t[i][k + 1 + z] == s[j][z + n]:
-                            count[n] += 1
-                    n += 1
-                # print(count)
-                m = max(count)
-                k = count.index(m) + len_t -1
+            result = compare_line(t[i][k + 1:], s[j])
+            # print(result)
+            if t[i][-1] == s[j][result[-1]]:
+                k = result[-1]
+                return True, k
+        # if m / len_t >= accuracy:
 
-        if m / len_t >= accuracy:
-            return True, k
         return False, None
 
     a, x = logic_check(t, s, i, j, state, k, 0)
+    print('t ends firstly？', a, x)
     b, y = logic_check(s, t, j, i, state, k, 1)
-    # print('t ends firstly？', a, x)
-    # print('s ends firstly？', b, y)
+    print('s ends firstly？', b, y)
     if a and not b:
         return -1, x
     elif a and b:
@@ -207,15 +184,16 @@ def compare_line(t, s):
                     p[i][0] = j
                 else:
                     p[i].append(j)
-    # print(p)
+    # print('p', p)
     count = []
     lst = combinelist(p)
     n = len(lst)
     for i in range(n):
-        count.append(incrlist(lst[i]))
-    # print(lst, n)
+        count += get_inclist(lst[i])
+    # print('combined', lst, n)
     # print(count)
-    result = max(count, key = lambda k: len(k))
+    result = get_contlist(count)
+    print('longest list', result)
     return result
     # print(result)
     # for i in range(n):
@@ -251,6 +229,8 @@ def incrlist(arr):
     """
     n = len(arr)
     m = [0]*n
+    if n == 1:
+        return arr
     for x in range(n-2,-1,-1):
         for y in range(n-1,x,-1):
             if arr[x] < arr[y] and m[x] <= m[y]:
@@ -263,17 +243,68 @@ def incrlist(arr):
                 max_value -= 1
     return result
 
+def get_inclist(s):
+    """ get all the increasing sublist """
+    def get_list(t):
+        lst = []
+        if not t:
+            return [[]]
+        else:
+            a = [[t[0]] + k for k in get_list(t[1:])]
+            b = get_list(t[1:])
+            # print(a, b)
+            return a + b
+    # print(s)
+    lst = get_list(s)
+    # print(lst)
+    lst.remove([])
+    result = []
+    for t in lst:
+        n = len(t)
+        if n <= 1:
+            result.append(t)
+        else:
+            i = 0
+            while i < n - 2:
+                if t[i] > t[i+1]:
+                    break
+                i += 1
+            if i == n - 2:
+                result.append(t)
+    return result
+
+def get_contlist(s):
+    lst = max(s, key = lambda k: len(k))
+    n = len(lst)
+    m, goal = n * 100, [0]
+    for t in s:
+        if len(t) == n:
+            diff = 0
+            i = 0
+            while i < n - 2:
+                diff += t[i+1] - t[i]
+                i += 1
+            if m >= diff and goal[-1] <= t[-1]:
+                m = diff
+                goal = t
+    return goal
+
+
 def time_calc(time, t_script, s_script, state, new_state, i, j, k, script):
     """ Calculate the start or end time of s_script from ts_match
         place = 0 or 1 (0 means start and 1 means end)
     """
     t, s = t_script[i], s_script[j]
-    print(t, '\n', s)
+    # print(t, '\n', s)
     t0, t1 = get_timestamp(time[i])
     time0, time1 = timestamp_to_time(t0), timestamp_to_time(t1)
     delta =  time1 - time0
     n = len(t)
-    t_d = delta / (n - 1)
+    if n > 1:
+        t_d = delta / (n - 1)
+    else:
+        t_d = 1
+    # print('k', k)
     sec0 = time_to_timestamp(round(time1 - k * t_d) + 10) #calculated start time
     sec1 = time_to_timestamp(round(time0 + k * t_d) - 10) #calculated end time
     if new_state == -1:
@@ -294,7 +325,7 @@ def time_calc(time, t_script, s_script, state, new_state, i, j, k, script):
         elif state == 0:
             script[j][0] = t0 + ' --> ' + sec1
         elif state == 1:
-            sec0 = time_to_timestamp(timestamp_to_time(sec1) - (len(s) - 1 ) * t_d)
+            sec0 = time_to_timestamp(round(timestamp_to_time(sec1) - (len(s) - 1 ) * t_d))
             script[j][0] = sec0 + ' --> ' + sec1
 
     # return time_to_timestamp(round(time))
@@ -314,32 +345,16 @@ def match_s(tmatch, script):
     state, k = 0, 0
     s = [['time', script[k]] for k in range(len(script))]
     while i < len(t_script) and j < len(script):
+        print('state:', state, 'k:', k)
         new_state, k = match_l(t_script, s_script, i, j, state, k)
-        print(new_state, k)
+        # print('new_state', new_state, k)
         time_calc(time, t_script, s_script, state, new_state, i, j, k, s)
         if new_state == -1:
-            # if state == 0:
-            #     s[j][0] = t0 + ' --> '
-            # elif state == 1:
-            #     s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> '
             i += 1
         elif new_state == 0:
-            # if state == -1:
-            #     s[j][0] += t1
-            # elif state == 0:
-            #     s[j][0] = t0 + ' --> ' + t1
-            # elif state == 1:
-            #     s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> ' + t1
             i += 1
             j += 1
         elif new_state == 1:
-            # if state == -1:
-            #     s[j][0] += time_calc(tmatch[i], script[j], 1)
-            # elif state == 0:
-            #     s[j][0] = t0 + ' --> ' + time_calc(tmatch[i], script[j], 1)
-            # elif state == 1:
-            #     s[j][0] = time_calc(tmatch[i], script[j], 0) + ' --> '\
-            #               + time_calc(tmatch[i], script[j], 1)
             j += 1
         else:
             print('An error happened in line ', i+1, '\n', tmatch[i][1], '\n', script[j])
