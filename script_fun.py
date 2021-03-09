@@ -121,7 +121,7 @@ def match_l(t_script, s_script, i, j, state, k):
             result = compare_line(t[i], s[j])
             # print(t[i], '\n', s[j])
             # print('result', result)
-            if t[i][-1] == s[j][result[-1]]:
+            if t[i][-1] == s[j][result[-1]] and diff < 1:
                 k = result[-1]
                 return True, k
         elif state == -1:
@@ -265,11 +265,11 @@ def get_inclist(s):
             result.append(t)
         else:
             i = 0
-            while i < n - 2:
-                if t[i] > t[i+1]:
+            while i < n - 1:
+                if t[i] >= t[i+1]:
                     break
                 i += 1
-            if i == n - 2:
+            if i == n - 1:
                 result.append(t)
     return result
 
@@ -281,10 +281,10 @@ def get_contlist(s):
         if len(t) == n:
             diff = 0
             i = 0
-            while i < n - 2:
+            while i < n - 1:
                 diff += t[i+1] - t[i]
                 i += 1
-            if m >= diff and goal[-1] <= t[-1]:
+            if m > diff or (m == diff and goal[-1] <= t[-1]):
                 m = diff
                 goal = t
     return goal
